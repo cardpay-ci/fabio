@@ -6,6 +6,7 @@ const (
 	RouteAddCmd    Cmd = "route add"
 	RouteDelCmd    Cmd = "route del"
 	RouteWeightCmd Cmd = "route weight"
+	RouteDstDelCmd Cmd = "route dst-del"
 )
 
 type RouteDef struct {

@@ -121,6 +121,8 @@ func NewTable(s string) (t Table, err error) {
 			err = t.addRoute(d)
 		case RouteDelCmd:
 			err = t.delRoute(d)
+		case RouteDstDelCmd:
+			err = t.delDst(d)
 		case RouteWeightCmd:
 			err = t.weighRoute(d)
 		default:
@@ -247,6 +249,38 @@ func (t Table) delRoute(d *RouteDef) error {
 		r.filter(func(tg *Target) bool {
 			return tg.Service == d.Service && tg.URL.String() == targetURL.String()
 		})
+	}
+
+	// remove all routes without targets
+	for host, routes := range t {
+		var clone Routes
+		for _, r := range routes {
+			if len(r.Targets) == 0 {
+				continue
+			}
+			clone = append(clone, r)
+		}
+		t[host] = clone
+	}
+
+	// remove all hosts without routes
+	for host, routes := range t {
+		if len(routes) == 0 {
+			delete(t, host)
+		}
+	}
+
+	return nil
+}
+
+// delDst removes all routes for destination
+func (t Table) delDst(d *RouteDef) error {
+	for _, routes := range t {
+		for _, r := range routes {
+			r.filter(func(tg *Target) bool {
+				return tg.URL.String() == d.Dst
+			})
+		}
 	}
 
 	// remove all routes without targets

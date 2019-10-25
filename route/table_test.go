@@ -639,3 +639,36 @@ func TestTableLookup(t *testing.T) {
 		}
 	}
 }
+
+func TestDstDel(t *testing.T) {
+	s := `	
+	route add svc /test-path http://foo.com:900
+	route dst-del http://foo.com:900
+	`
+
+	tbl, err := NewTable(s)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var tests = []struct {
+		req         *http.Request
+		dst         string
+		globEnabled bool
+	}{
+
+		{&http.Request{URL: mustParse("/test-path")}, "<nil>", globEnabled},
+	}
+
+	for i, tt := range tests {
+		got := tbl.Lookup(tt.req, "", rndPicker, prefixMatcher, tt.globEnabled)
+		want := tt.dst
+		if got == nil && want != "<nil>" {
+			t.Errorf("%d: got %v want %v", i, got, want)
+			continue
+		}
+		if got != nil && got.URL.String() != want {
+			t.Errorf("%d: got %v want %v", i, got.URL.String(), want)
+		}
+	}
+}
