@@ -643,7 +643,12 @@ func TestTableLookup(t *testing.T) {
 func TestDstDel(t *testing.T) {
 	s := `	
 	route add svc /test-path http://foo.com:900
+	route add svc1 /boo1 http://boo1.com:900
+	route add svc2 /boo2 http://boo2.com:900
+
 	route dst-del http://foo.com:900
+	route dst-del http://boo1.com:900 svc2
+	route dst-del http://boo2.com:900 svc2
 	`
 
 	tbl, err := NewTable(s)
@@ -658,6 +663,8 @@ func TestDstDel(t *testing.T) {
 	}{
 
 		{&http.Request{URL: mustParse("/test-path")}, "<nil>", globEnabled},
+		{&http.Request{URL: mustParse("/boo1")}, "http://boo1.com:900", globEnabled},
+		{&http.Request{URL: mustParse("/boo2")}, "<nil>", globEnabled},
 	}
 
 	for i, tt := range tests {

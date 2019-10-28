@@ -175,11 +175,13 @@ func parseRouteDel(s string) (*RouteDef, error) {
 	return nil, errors.New("syntax error: 'route del' invalid")
 }
 
-var dstDel = mustCompileWithFlexibleSpace(`^route dst-del (\S+)$`)
+// route dst-del <dst>[ <src>]
+// 1: dst 2: service
+var dstDel = mustCompileWithFlexibleSpace(`^route dst-del (\S+)( (\S+))?$`)
 
 func parseRouteDstDel(s string) (*RouteDef, error) {
 	if m := dstDel.FindStringSubmatch(s); m != nil {
-		return &RouteDef{Cmd: RouteDstDelCmd, Dst: m[1]}, nil
+		return &RouteDef{Cmd: RouteDstDelCmd, Dst: m[1], Service: m[3]}, nil
 	}
 	return nil, errors.New("syntax error: 'route dst-del' invalid")
 }

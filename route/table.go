@@ -275,11 +275,23 @@ func (t Table) delRoute(d *RouteDef) error {
 
 // delDst removes all routes for destination
 func (t Table) delDst(d *RouteDef) error {
-	for _, routes := range t {
-		for _, r := range routes {
-			r.filter(func(tg *Target) bool {
-				return tg.URL.String() == d.Dst
-			})
+	switch {
+	case d.Service == "":
+		for _, routes := range t {
+			for _, r := range routes {
+				r.filter(func(tg *Target) bool {
+					return tg.URL.String() == d.Dst
+				})
+			}
+		}
+
+	default:
+		for _, routes := range t {
+			for _, r := range routes {
+				r.filter(func(tg *Target) bool {
+					return tg.Service == d.Service && tg.URL.String() == d.Dst
+				})
+			}
 		}
 	}
 
