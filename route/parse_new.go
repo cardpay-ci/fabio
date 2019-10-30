@@ -10,6 +10,7 @@ import (
 
 var (
 	reRouteAdd    = regexp.MustCompile(`^route\s+add`)
+	reRouteDstDel = regexp.MustCompile(`^route\s+dst-del`)
 	reRouteDel    = regexp.MustCompile(`^route\s+del`)
 	reRouteWeight = regexp.MustCompile(`^route\s+weight`)
 	reComment     = regexp.MustCompile(`^(#|//)`)
@@ -77,6 +78,8 @@ func Parse(in string) (defs []*RouteDef, err error) {
 			def, err = parseRouteAdd(s)
 		case reRouteDel.MatchString(s):
 			def, err = parseRouteDel(s)
+		case reRouteDstDel.MatchString(s):
+			def, err = parseRouteDstDel(s)
 		case reRouteWeight.MatchString(s):
 			def, err = parseRouteWeight(s)
 		default:
@@ -170,6 +173,17 @@ func parseRouteDel(s string) (*RouteDef, error) {
 		return &RouteDef{Cmd: RouteDelCmd, Service: m[1], Src: m[3], Dst: m[5]}, nil
 	}
 	return nil, errors.New("syntax error: 'route del' invalid")
+}
+
+// route dst-del <dst>[ <src>]
+// 1: dst 2: service
+var dstDel = mustCompileWithFlexibleSpace(`^route dst-del (\S+)( (\S+))?$`)
+
+func parseRouteDstDel(s string) (*RouteDef, error) {
+	if m := dstDel.FindStringSubmatch(s); m != nil {
+		return &RouteDef{Cmd: RouteDstDelCmd, Dst: m[1], Service: m[3]}, nil
+	}
+	return nil, errors.New("syntax error: 'route dst-del' invalid")
 }
 
 // route weight <svc> <src> weight <w>[ tags "<t1>,<t2>,..."]
